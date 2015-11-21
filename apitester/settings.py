@@ -90,7 +90,7 @@ WSGI_APPLICATION = 'apitester.wsgi.application'
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 # Parse database configuration from $DATABASE_URL
 import dj_database_url
-DATABASES['default'] =  dj_database_url.config(default="sqlite://db.sqlite")
+DATABASES = {'default': dj_database_url.config(default="sqlite://db.sqlite")}
 
 
 # Password validation
