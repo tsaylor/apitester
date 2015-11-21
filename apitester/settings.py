@@ -11,38 +11,58 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 """
 
 import os
+import random
+import string
+import configparser
+import dj_database_url
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
-# Static asset configuration
-# https://docs.djangoproject.com/en/dev/howto/static-files/
-STATIC_ROOT = 'staticfiles'
-STATIC_URL = '/static/'
+# 12 factor config: http://www.wellfireinteractive.com/blog/easier-12-factor-django/
+def read_env():
+    """Reads local default environment variables from a file.
+        <BASE_DIR>/settings.conf
+    """
+    settings_conf_path = os.path.join(BASE_DIR, 'settings.conf')
+    if os.access(settings_conf_path, os.F_OK):
+        config = configparser.ConfigParser()
+        config.read(settings_conf_path)
+        env = config.get('DEFAULT', 'env')
+        for key, value in config.items(env):
+            os.environ.setdefault(key.upper(), value)
 
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-)
+# load env variables from the conf file into settings
+read_env()
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/dev/howto/deployment/checklist/
+def env_var(key, default=None, cache=False):
+    """Retrieves env vars and makes Python boolean replacements"""
+    val = os.environ.get(key, default)
+    if cache and val == default:
+        os.environ[key] = default
+    if val == 'True':
+        val = True
+    elif val == 'False':
+        val = False
+    return val
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'capld5bk&!@t)u3%&eg=#wnc5k3p(^+oydge3)oi5e7w^bz#v='
+SECRET_KEY = env_var('SECRET_KEY',
+                     default=''.join(random.choice(string.printable) for x in range(40)))
+
+DEBUG = env_var('DEBUG', default=False)
+TEMPLATE_DEBUG = DEBUG
+
+ALLOWED_HOSTS = env_var('ALLOWED_HOSTS', default='').split(',')
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-# Allow all host headers
-ALLOWED_HOSTS = ['*']
-
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -83,14 +103,14 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'apitester.wsgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 # Parse database configuration from $DATABASE_URL
-import dj_database_url
-DATABASES = {'default': dj_database_url.config(default="sqlite://db.sqlite")}
+DATABASES = {'default': dj_database_url.config(default="sqlite:///db.sqlite")}
 
 
 # Password validation
@@ -124,3 +144,12 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+# Static asset configuration
+# https://docs.djangoproject.com/en/dev/howto/static-files/
+STATIC_ROOT = 'staticfiles'
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
