@@ -55,7 +55,6 @@ SECRET_KEY = env_var('SECRET_KEY',
                      default=''.join(random.choice(string.printable) for x in range(40)))
 
 DEBUG = env_var('DEBUG', default=False)
-TEMPLATE_DEBUG = DEBUG
 
 ALLOWED_HOSTS = env_var('ALLOWED_HOSTS', default='').split(',')
 
@@ -70,6 +69,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'library',
 ]
 
 MIDDLEWARE_CLASSES = [
