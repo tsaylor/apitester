@@ -17,6 +17,8 @@ def execute_call(modeladmin, request, queryset):
         response_body += "{}::{}::{}::{}\n".format(e.name, c.endpoint, c.method, c.payload)
         r = requests.Request(c.method, url, json=c.payload.data)
         resp = s.send(s.prepare_request(r))
+        response_body += "status code: {}\n".format(resp.status_code)
+        response_body += "call duration (ms): {}\n".format(resp.elapsed.microseconds//1000)
         response_body += "{}\n{}\n\n".format(
             json.dumps(dict(resp.headers), indent=2),
             json.dumps(resp.json(), indent=2)
